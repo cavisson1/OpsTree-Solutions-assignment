@@ -1,0 +1,61 @@
+--- 
+- name: "setup Haproxy" 
+  hosts: Haproxy
+  tasks: 
+    - 
+      apt: 
+        name: haproxy
+        state: present
+      name: "install haproxy"
+    - name: "add haproxy.cfg file"
+      template:
+        dest: "/etc/haproxy/haproxy.cfg"
+        src: "/home/ubuntu/ansibleplaybook/haproxy.cfg"
+      notify: restart haproxy
+    - name: "start haproxy"
+      service:
+        name: haproxy
+        state: started
+  handlers:    
+    - name: "restart haproxy"
+      service: 
+        name: haproxy
+        state: restarted
+       
+- name: Install LAMP Packages
+  hosts: webserver
+  tasks:
+    - name: install LAMP package
+      apt:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+      with_items:
+        - apache2
+        - mysql-server
+        - php
+        - php-mysql
+    - name: start service
+      service: 
+        name: "{{item}}"
+        state: started
+      with_items:
+         - apache2
+         - mysql
+
+    - name: remove index.html
+      file:
+          path: /var/www/html/index.html
+          state: absent
+
+    - name: deploy index.php 
+      copy:
+         src: /home/ubuntu/ansibleplaybook/index.php
+         dest: /var/www/html/index.php
+      notify: restart apache
+  handlers:
+     - name: restart apache
+       service:
+         name: apache2
+         state: restarted
+...

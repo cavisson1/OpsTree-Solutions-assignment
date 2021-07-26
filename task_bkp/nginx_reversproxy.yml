@@ -1,0 +1,15 @@
+---
+- name: setup revers proxy
+  hosts: Haproxy
+  tasks:
+      - name: install nginx
+        apt:
+                name: nginx
+                state: present
+                update_cache: yes
+      - name: start nginx servise
+        service:
+                name: nginx
+                state: started
+...
+

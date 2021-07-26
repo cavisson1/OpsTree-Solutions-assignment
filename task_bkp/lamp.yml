@@ -1,0 +1,58 @@
+
+#This playbook will install LAMP stack (Apache, mysql, php) on the remote machine.
+---
+ - name: setup reverse proxy server 
+   hosts: haproxy
+   becomes: yes
+   tasks:
+          - name: install Haproxy 
+            apt:
+                    name: haproxy
+                    state: present
+                    update_cache: yes
+            copy:
+                    src: haproxy.cfg
+                    dest: /etc/haproxy/haproxy.cfg
+            notify: restart haproxy
+   handlers:
+           - name: restart haproxy
+             service:
+                     name: haproxy
+                     state: restarted
+ - name: install LAMP stack 
+   hosts: webserver
+   becomes: yes
+   tasks:
+        - name: Install LAMP Packages
+          apt:
+                    name: "{{items}}"
+                    update_cache: yes
+                    state: present
+          with_items:
+                    - apache2
+                    - mysql-server
+                    - php7.0
+                    - php7.0-mysql
+        - name: start service
+          service: 
+                       name: "{{items}}"
+                       state: started
+                       update_cache: yes
+ 
+          with_items:
+                    - apache2
+                    - mysql
+        - name: deploye index.html
+          copy:
+                   src: index.html
+                   dest: /var/www/html/index.html
+                   notify: restart apache
+   handelers:
+          - name: restart apache
+            service:
+                    name: apache2
+                    state: restarted
+                    update_cache: yes
+
+...
+

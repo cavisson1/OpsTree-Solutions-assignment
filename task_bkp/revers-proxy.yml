@@ -1,0 +1,24 @@
+---
+#This playbook will install LAMP stack (Apache, mysql, php) on the remote machine.
+- name: setup reverse proxy server
+  hosts: Haproxy
+  tasks:
+          - name: call childe haproxy playbook
+            include: haproxy.yml
+  handlers:
+    - name: "restart haproxy"
+      service:
+        name: haproxy
+        state: restarted
+
+- name: instal LAMP Stack
+  hosts: webserver
+  tasks:
+          - name: call childe lamp stack playbook
+            include: setuplamp.yml
+  handlers:
+     - name: restart apache
+       service:
+         name: apache2
+         state: restarted
+...

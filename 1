@@ -1,0 +1,56 @@
+--- 
+- name: "setup Haproxy" 
+  becomes: true
+  hosts: haproxy
+  tasks: 
+    - 
+      apt: 
+        name: haproxy
+        state: present
+        update_cache: true
+      name: "install haproxy"
+    - 
+      copy: 
+        dest: /etc/haproxy/haroxy.cfg
+        notify: "restart haproxy service"
+        src: haroxy.cfg
+      name: "update haproxy.cfg file"
+  handlers: 
+    - 
+      name: "restart haproxy service"
+      service: 
+        name: haproxy
+        state: restarted
+        update_cache: true
+- name: Install LAMP Packages
+  becomes: yes
+  hosts: webserver
+  tasks:
+    - name: install LAMP package
+      apt:
+        name: "{{items}}"
+        state: latest
+        update_cache: yes
+      with_items:
+        - apache2
+        - mysql-server
+        - php7.0
+        - php7.0-mysql
+    - name: start service
+      service: 
+        name: "{{items}}"
+        state: started
+      with_items:
+         - apache2
+         - mysql
+    - name: deploy index.php 
+      copy:
+         src: index.php
+         dest: /vae/www/html/index.php
+         notify: restart apache
+  handlers:
+     - name: restart apache
+       service:
+         name: apache2
+         state: restarted
+...
